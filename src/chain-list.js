@@ -56,7 +56,10 @@ async function init() {
   const response = await fetch(
     "https://keplr-chain-registry.vercel.app/api/chains",
   );
-  const chainInfos = await response.json();
+  const _chainInfos = await response.json();
+  const chainInfos = _chainInfos.chains.filter((chainInfo) => {
+    return !chainInfo.hideInUI;
+  });
 
   let registeredChainIds = [];
   if (keplr) {
@@ -65,21 +68,31 @@ async function init() {
       (chainInfo) => parse(chainInfo.chainId).identifier,
     );
   } else {
-    registeredChainIds = chainInfos.chains
+    registeredChainIds = chainInfos
       .filter((chainInfo) => !chainInfo.nodeProvider)
       .map((chainInfo) => parse(chainInfo.chainId).identifier);
   }
 
   removeChainListChild();
 
-  const filteredChainInfos = chainInfos.chains.filter(
+  const filteredChainInfos = chainInfos.filter(
     (chainInfo) =>
       !registeredChainIds.includes(parse(chainInfo.chainId).identifier),
   );
 
+  const registeredChainInfos = chainInfos
+    .filter((chainInfo) => chainInfo.nodeProvider)
+    .filter((chainInfo) =>
+      registeredChainIds.includes(parse(chainInfo.chainId).identifier),
+    );
+
   if (filteredChainInfos.length > 0) {
     filteredChainInfos.map((chainInfo) => {
       return createChainItem(chainInfo, keplr);
+    });
+
+    registeredChainInfos.map((chainInfo) => {
+      return createChainItem(chainInfo, keplr, true);
     });
   } else {
     const addedAllChainDiv = document.createElement("div");
@@ -103,7 +116,7 @@ function removeChainListChild() {
   }
 }
 
-function createChainItem(chainInfo, keplr) {
+function createChainItem(chainInfo, keplr, registered) {
   const chainItemDiv = document.createElement("div");
   chainItemDiv.className = "chain-item";
 
@@ -111,7 +124,11 @@ function createChainItem(chainInfo, keplr) {
   createChainName(chainItemDiv, chainInfo);
   createChainCurrency(chainItemDiv, chainInfo);
   createNodeProvider(chainItemDiv, chainInfo);
-  createRegisterButton(chainItemDiv, chainInfo, keplr);
+  if (registered) {
+    createRegisteredButton(chainItemDiv);
+  } else {
+    createRegisterButton(chainItemDiv, chainInfo, keplr);
+  }
 
   const chainListDiv = document.getElementById("chain-list");
   chainListDiv.appendChild(chainItemDiv);
@@ -139,9 +156,11 @@ function createChainCurrency(chainItemDiv, chainInfo) {
   const chainCurrencyDiv = document.createElement("div");
   chainCurrencyDiv.className = "chain-currency";
 
-  const chainCurrencyText = document.createTextNode(
-    chainInfo.currencies[0].coinDenom,
-  );
+  const chainCurrency = chainInfo.stakeCurrency
+    ? chainInfo.stakeCurrency
+    : chainInfo.currencies[0];
+
+  const chainCurrencyText = document.createTextNode(chainCurrency.coinDenom);
   chainCurrencyDiv.appendChild(chainCurrencyText);
 
   chainItemDiv.appendChild(chainCurrencyDiv);
@@ -170,6 +189,9 @@ function createNodeProvider(chainItemDiv, chainInfo) {
       chainInfo.nodeProvider.email,
     );
     providerEmailDiv.appendChild(providerEmailText);
+    providerEmailDiv.onclick = function () {
+      window.location = `mailto:${chainInfo.nodeProvider.email}`;
+    };
 
     nodeProviderDiv.appendChild(providerLinkA);
     nodeProviderDiv.appendChild(providerEmailDiv);
@@ -178,6 +200,9 @@ function createNodeProvider(chainItemDiv, chainInfo) {
   } else {
     const nodeProviderDiv = document.createElement("div");
     nodeProviderDiv.className = "native-node-provider";
+
+    const providerNameText = document.createTextNode("Keplr Node");
+    nodeProviderDiv.appendChild(providerNameText);
 
     chainItemDiv.appendChild(nodeProviderDiv);
   }
@@ -193,8 +218,16 @@ function createRegisterButton(chainItemDiv, chainInfo, keplr) {
   registerButton.onclick = async () => {
     try {
       if (keplr) {
+        registerButton.classList.add("button-loading");
+        registerButton.textContent = "Loading";
+
         await window.keplr.experimentalSuggestChain(chainInfo);
-        init();
+
+        setTimeout(() => {
+          registerButton.classList.remove("button-loading");
+          registerButton.textContent = "Add to Keplr";
+          init();
+        }, 1000);
       } else {
         const keplrNotInstalledDiv = document.getElementById(
           "keplr-not-installed",
@@ -202,11 +235,26 @@ function createRegisterButton(chainItemDiv, chainInfo, keplr) {
         keplrNotInstalledDiv.style.display = "flex";
       }
     } catch (e) {
+      setTimeout(() => {
+        registerButton.classList.remove("button-loading");
+        registerButton.textContent = "Add to Keplr";
+      }, 300);
+
       console.error(e);
     }
   };
 
   chainItemDiv.appendChild(registerButton);
+}
+
+function createRegisteredButton(chainItemDiv) {
+  const registeredButton = document.createElement("button");
+  registeredButton.className = "chain-added";
+
+  const registeredButtonText = document.createTextNode("Added");
+  registeredButton.appendChild(registeredButtonText);
+
+  chainItemDiv.appendChild(registeredButton);
 }
 
 init();
