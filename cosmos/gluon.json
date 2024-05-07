@@ -1,0 +1,53 @@
+{
+  "rpc": "https://lcd.gluon-1.cauchye.net",
+  "rest": "https://lcd.gluon-1.cauchye.net:1318",
+  "nodeProvider": {
+    "name": "Gluon",
+    "email": "info@gluon.zone",
+    "website":"https://gluon.zone/"
+  },
+  "chainId": "gluon-1",
+  "chainName": "Gluon",
+  "chainSymbolImageUrl": "https://raw.githubusercontent.com/chainapsis/keplr-chain-registry/main/images/gluon/chain.png",
+  "stakeCurrency": {
+    "coinDenom": "GLU",
+    "coinMinimalDenom": "uglu",
+    "coinDecimals": 6,
+    "coinImageUrl": "https://raw.githubusercontent.com/chainapsis/keplr-chain-registry/main/images/gluon/uglu.png"
+  },
+  "bip44": {
+    "coinType": 118
+  },
+  "bech32Config": {
+    "bech32PrefixAccAddr": "gluon",
+    "bech32PrefixAccPub": "gluonpub",
+    "bech32PrefixValAddr": "gluonvaloper",
+    "bech32PrefixValPub": "gluonvaloperpub",
+    "bech32PrefixConsAddr": "gluonvalcons",
+    "bech32PrefixConsPub": "gluonvalconspub"
+  },
+  "currencies": [
+    {
+      "coinDenom": "GLU",
+      "coinMinimalDenom": "uglu",
+      "coinDecimals": 6,
+      "coinImageUrl": "https://raw.githubusercontent.com/chainapsis/keplr-chain-registry/main/images/gluon/uglu.png"
+    }
+  ],
+  "feeCurrencies": [
+    {
+      "coinDenom": "GLU",
+      "coinMinimalDenom": "uglu",
+      "coinDecimals": 6,
+      "coinImageUrl": "https://raw.githubusercontent.com/chainapsis/keplr-chain-registry/main/images/gluon/uglu.png",
+      "gasPriceStep": {
+        "low": 0.0025,
+        "average": 0.025,
+        "high": 0.04
+      }
+    }
+  ],
+  "features": [
+    "cosmwasm"
+  ]
+}
